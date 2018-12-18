@@ -1,3 +1,9 @@
+# 项目概述
+
+本项目用于搭建日常分布式的demo系统。
+
+
+
 ## 搭建一个dubbo+springboot的demo项目
 
 - 搭建springBoot项目
@@ -47,7 +53,7 @@ sh bin/mqshutdown broker
 sh bin/mqshutdown namesrv
 ```
 
-- [搭建RocketMQ-Console](https://github.com/apache/rocketmq-externals/blob/master/rocketmq-console/README.md)
+[搭建RocketMQ-Console](https://github.com/apache/rocketmq-externals/blob/master/rocketmq-console/README.md)
 
 1. Docker启动
 
