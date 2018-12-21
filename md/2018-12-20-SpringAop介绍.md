@@ -354,8 +354,160 @@ public class StatisticalTimeAspect {
 
 ## AOP实现原理
 
+其本质就是代码植入的时机：
 
+1.编译期（AspectJ）
+2.类加载时（Aspectj 5+）
+3.运行时（Spring AOP）
 
 ### 设计模式：代理模式、责任链模式
 
+**什么是代理模式？**
+
+![image-20181221141624075](https://ws3.sinaimg.cn/large/006tNbRwgy1fyecbufg3lj30bs0740t9.jpg)
+
+提供了对目标对象额外的访问方式，即通过代理对象访问目标对象，这样可以在不修改原目标对象的前提下，提供额外的功能操作，扩展目标对象的功能。
+
 #### 静态代理和动态代理
+
+![image-20181221145559519](https://ws4.sinaimg.cn/large/006tNbRwgy1fyedh1sh1ij30wu0p8dly.jpg)
+
+**静态代理**
+
+```java
+/**
+ * 描述:
+ * 代理对象
+ *
+ * @author codingprh
+ * @create 2018-12-21 3:02 PM
+ */
+public class Proxy implements Subject {
+
+    private RealSubject realSubject;
+
+    public Proxy(RealSubject realSubject) {
+        this.realSubject = realSubject;
+    }
+
+    @Override
+    public String request() {
+        realSubject.request();
+        return "";
+    }
+}
+```
+
+注：代理对象，需要查看源码可以到github上面查看。
+
+静态代理的缺点：每当需要代理的方法越多的时候，重复的逻辑就越多。
+
+**动态代理**
+
+动态代理实现有2种实现：JDK代理（接口代理）和Cglib代理（继承代理）
+
+#### **基于jdk实现动态代理**
+
+```java
+package com.codingprh.demo.spring_aop_demo.principle.jdkDynamicProxy;
+
+import com.codingprh.demo.spring_aop_demo.principle.staticProxy.RealSubject;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+/**
+ * 描述:
+ * 动态代理实现：基于jdk代理实现（接口）
+ *
+ * @author codingprh
+ * @create 2018-12-21 3:35 PM
+ */
+public class JdkProxySubject implements InvocationHandler {
+
+    private RealSubject realSubject;
+
+    public JdkProxySubject(RealSubject realSubject) {
+        this.realSubject = realSubject;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws InvocationTargetException, IllegalAccessException {
+        System.out.println("before");
+        Object result = null;
+        try {
+            result = method.invoke(realSubject, args);
+            System.out.println("result=" + result);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            System.out.println("after");
+        }
+
+        return result;
+    }
+}
+#客户端如何调用
+public static void main(String[] args) {
+        Subject subject = (Subject) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{Subject.class}, new JdkProxySubject(new RealSubject()));
+        subject.sayHello();
+    }
+```
+
+注：实现 InvocationHandler接口
+
+#### **基于Cglib实现动态代理**
+
+```java
+package com.codingprh.demo.spring_aop_demo.principle.cglibDynamicProxy;
+
+import org.springframework.cglib.proxy.MethodInterceptor;
+import org.springframework.cglib.proxy.MethodProxy;
+
+import java.lang.reflect.Method;
+
+/**
+ * 描述:
+ * 基于cglib实现的代理，采用继承方式
+ *
+ * @author codingprh
+ * @create 2018-12-21 4:28 PM
+ */
+public class CglibProxySubject implements MethodInterceptor {
+
+    @Override
+    public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+        System.out.println("before in cglib");
+        Object result = null;
+        try {
+            result = methodProxy.invokeSuper(o, objects);
+            System.out.println("result=" + result);
+        } catch (Exception e) {
+            System.out.println("get ex:" + e.getMessage());
+            throw e;
+        } finally {
+            System.out.println("after in cglib");
+        }
+        return result;
+    }
+}
+
+#客户端调用
+   public static void main(String[] args) {
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(RealSubject.class);
+        enhancer.setCallback(new CglibProxySubject());
+        Subject subject = (Subject) enhancer.create();
+        subject.sayHello();
+    }
+```
+
+注：实现MethodInterceptor接口
+
+#### jdk代理和cglib的区别？
+
+JDK只能针对有接口的类的接口方法进行动态代理
+Cglib基于继承来实现代理，无法对static、final类进行代理
+Cglib基于继承来实现代理，无法对private、static方法进行代理
+
