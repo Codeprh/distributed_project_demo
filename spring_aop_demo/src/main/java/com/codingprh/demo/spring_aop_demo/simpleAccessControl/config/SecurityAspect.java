@@ -22,13 +22,13 @@ public class SecurityAspect {
     private AuthService authService;
 
     // 使用要拦截标注有AdminOnly的注解进行操作
-    @Pointcut("@annotation(adminOnly)")
-    public void adminOnlyMethod(AdminOnly adminOnly) {
+    @Pointcut("@annotation(com.codingprh.demo.spring_aop_demo.simpleAccessControl.annotation.AdminOnly)")
+    public void adminOnlyMethod() {
 
     }
 
-    @Before("adminOnlyMethod(adminOnly)")
-    public void check(AdminOnly adminOnly) {
+    @Before("adminOnlyMethod()")
+    public void check() {
         authService.checkAccess();
     }
 

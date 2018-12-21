@@ -17,7 +17,7 @@ public class ProductService {
     public void insert() {
         System.out.println("插入一条数据成功");
     }
-
+    
     public void inquire() {
         System.out.println("查询一条数据成功");
     }

@@ -110,6 +110,17 @@ public class SecurityAspect {
     public void check(AdminOnly adminOnly) {
         authService.checkAccess();
     }
+    
+    // 使用注解的全路径就不需要传入参数
+    @Pointcut("@annotation(com.codingprh.demo.spring_aop_demo.simpleAccessControl.annotation.AdminOnly)")
+    public void adminOnlyMethod() {
+
+    }
+
+    @Before("adminOnlyMethod()")
+    public void check() {
+        authService.checkAccess();
+    }
 
 
 }
@@ -152,3 +163,199 @@ public class ProductServiceTest {
 
 ![image-20181221090535039](https://ws3.sinaimg.cn/large/006tNbRwgy1fye3ciu6rkj309k09gglv.jpg)
 
+## Pointcut express:切面表达式
+
+- designators（指示器）：描述通过什么样的方式去匹配哪些类、哪些方法
+
+```java
+匹配方法 execution()
+匹配注解 @target() @args() @within() @annotation()
+匹配包/类型 within()
+匹配对象 this() bean() target()
+匹配参数 args()
+```
+
+- Wildcards（通配符）：使用通配符进行描述
+
+```java
+* 匹配任意数量的字符
++ 匹配指定类及其子类
+.. 一般用于匹配任意参数的子包或参数
+```
+
+- Operators（运算符）：使用运算符进行多条件的判断
+
+```java
+&& 与操作符
+|| 或操作符
+! 非操作符
+```
+
+- execution使用：
+
+  ```java
+  execution(
+      modifier-pattern? // 修饰符匹配
+      ret-type-pattern // 返回值匹配
+      declaring-type-pattern? // 描述值包名
+      name-pattern(param-pattern) // 方法名匹配（参数匹配）
+      throws-pattern?// 抛出异常匹配
+  )
+  ```
+
+### Pointcut表达式：匹配包类
+
+```java
+/**
+     * 拦截具体的某个具体的类
+*/
+    @Pointcut("within(com.codingprh.demo.spring_aop_demo.simpleAccessControl.service.AuthService)")
+    public void matchClass() {
+
+    }
+```
+
+```java
+
+    /**
+     * 拦截包，和包下面所有的类
+     */
+    @Pointcut("within(com.codingprh.demo.spring_aop_demo.simpleAccessControl.service..*)")
+    public void matchPackageAndAll() {
+
+    }
+```
+
+### Pointcut表达式：配置对象
+
+```java
+
+    /**
+     * 拦截以service结尾的bean里面的所有方法
+     */
+    @Pointcut("bean(*Service)")
+    public void matchBean() {
+
+    }
+```
+
+注：todo区分target和this的区别
+
+### Pointcut表达式：匹配参数
+
+```java
+
+    /**
+     * 拦截所有insert开头的方法,并且只有一个参数的方法
+     */
+    @Pointcut("execution(* *..insert*(Long))")
+    public void matchArgs() {
+
+    }
+```
+
+```java
+    /**
+     * 匹配一个参数类型为String类型
+     */
+    @Pointcut("args(String,..)")
+    public void matchArgs() {
+
+    }
+```
+
+注：谨慎使用args参数，应该要具体自己定义的类型，才使用。
+
+### Pointcut表达式：匹配方法
+
+```java
+
+    /**
+     * 匹配方法&&使用execution表达式
+     *
+     * 匹配以public 开头，在com.codingprh.demo.spring_aop_demo.simpleAccessControl.service
+     * 包以及子包，用*Service结尾的类的任意方法，任意参数
+     */
+    @Pointcut("execution(public * com.codingprh.demo.spring_aop_demo.simpleAccessControl.service..*Service.*(..))")
+    public void matchMethod() {
+
+    }
+```
+
+
+
+## Advice(建言)注解
+
+5种Advice注解
+
+```java
+@Before，前置通知
+@After（finally），后置通知，方法执行完之后
+@AfterReturning，返回通知，成功执行之后
+@AfterThrowing，异常通知，抛出异常之后
+@Around，环绕通知
+```
+
+#### 基于Around实现方法耗时统计
+
+```java
+package com.codingprh.demo.spring_aop_demo.pointcutExpressDemo;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
+
+/**
+ * 描述:
+ * 统计方法时间耗时切面
+ *
+ * @author codingprh
+ * @create 2018-12-21 11:11 AM
+ */
+@Aspect
+@Component
+public class StatisticalTimeAspect {
+    /**
+     * 统计在com.codingprh.demo.spring_aop_demo.simpleAccessControl.service
+     * <p>
+     * 包以及子包下，任何以Service结尾的类
+     * <p>
+     * 类中的任何以public开头的方法
+     * <p>
+     * 方法任意参数
+     */
+    @Pointcut("execution(public * com.codingprh.demo.spring_aop_demo.simpleAccessControl.service..*Service.*(..))")
+    public void consumingTime() {
+
+    }
+
+    @Around("consumingTime()")
+    public Object realOperator(ProceedingJoinPoint pjp) throws Throwable {
+        Long startTime = System.currentTimeMillis();
+        System.out.println("调用方法：" + pjp.getSignature().getName() + "，startTime=" + startTime);
+        System.out.println("相当于@Before");
+        try {
+            Object result = pjp.proceed(pjp.getArgs());
+            System.out.println("相当于@AfterReturning");
+            return result;
+        } catch (Throwable throwable) {
+            System.out.println("相当于@AfterThrowing");
+            throw throwable;
+        } finally {
+            System.out.println("相当于@After");
+            System.out.println("endTime,total=" + (System.currentTimeMillis() - startTime) + "ms");
+        }
+    }
+
+}
+```
+
+## AOP实现原理
+
+
+
+### 设计模式：代理模式、责任链模式
+
+#### 静态代理和动态代理
