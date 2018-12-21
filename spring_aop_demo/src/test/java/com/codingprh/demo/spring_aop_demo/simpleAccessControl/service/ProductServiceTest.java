@@ -17,15 +17,20 @@ public class ProductServiceTest {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private CurrentUserHolder currentUserHolder;
+
     @Test(expected = Exception.class)
     public void insert() {
-        CurrentUserHolder.setHolder("tom");
+        currentUserHolder.setHolder("tom");
         productService.insert();
     }
 
     @Test
     public void insertAdmin() {
-        CurrentUserHolder.setHolder("admin");
+
+        currentUserHolder.setHolder("admin");
+
         productService.insert();
     }
 

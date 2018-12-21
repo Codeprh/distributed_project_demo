@@ -1,5 +1,7 @@
 package com.codingprh.demo.spring_aop_demo.simpleAccessControl.model;
 
+import org.springframework.stereotype.Component;
+
 /**
  * 描述:
  * 当前线程所属用户
@@ -7,14 +9,15 @@ package com.codingprh.demo.spring_aop_demo.simpleAccessControl.model;
  * @author codingprh
  * @create 2018-12-20 4:54 PM
  */
+@Component
 public class CurrentUserHolder {
-    private static final ThreadLocal<String> holder = new ThreadLocal<>();
+    private static ThreadLocal<String> holder = new ThreadLocal<>();
 
-    public static String getHolder() {
+    public String getHolder() {
         return holder.get() == null ? "unkown" : holder.get();
     }
 
-    public static void setHolder(String user) {
+    public void setHolder(String user) {
         holder.set(user);
     }
 

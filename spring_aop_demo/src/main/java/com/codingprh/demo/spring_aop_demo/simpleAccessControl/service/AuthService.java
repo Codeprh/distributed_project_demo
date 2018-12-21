@@ -1,6 +1,7 @@
 package com.codingprh.demo.spring_aop_demo.simpleAccessControl.service;
 
 import com.codingprh.demo.spring_aop_demo.simpleAccessControl.model.CurrentUserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -15,8 +16,13 @@ import java.util.Objects;
 @Service
 public class AuthService {
 
+    @Autowired
+    private CurrentUserHolder currentUserHolder;
+
     public void checkAccess() {
-        String user = CurrentUserHolder.getHolder();
+
+        System.out.println("查看当前线程" + Thread.currentThread().getName() + ",currentUserHolder=" + currentUserHolder);
+        String user = currentUserHolder.getHolder();
         if (!Objects.equals("admin", user)) {
             throw new RuntimeException("当前用户没有权限操作！！！");
         }
