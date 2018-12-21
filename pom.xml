@@ -27,6 +27,7 @@
         <module>dubbo_demo_consumer</module>
         <module>dubbo_demo_base</module>
         <module>rocketmq_demo</module>
+        <module>spring_aop_demo</module>
     </modules>
 
 
@@ -41,6 +42,8 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        
+
 
         <dependency>
             <groupId>com.codingprh.demo</groupId>
@@ -67,6 +70,12 @@
             <groupId>com.alibaba.spring</groupId>
             <artifactId>spring-context-support</artifactId>
             <version>1.0.2</version>
+        </dependency>
+        <!--lombok插件支持-->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.4</version>
         </dependency>
     </dependencies>
 
