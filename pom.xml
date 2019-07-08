@@ -58,7 +58,7 @@
             <version>0.2.0</version>
         </dependency>
 
-        <!-- Dubbo -->
+        <!-- Dubbo 11-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dubbo</artifactId>
